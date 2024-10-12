@@ -5,8 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import TimeoutException
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 import time
 
 
@@ -16,8 +16,8 @@ import time
 
 # PRODUCT = "W L Weller Full Proof Straight"
 PRODUCT = "Horse Soldier Straight Bourbon"
-# PRODUCT_URL = "https://www.finewineandgoodspirits.com/w-l-weller-full-proof-straight-bourbon-single-barrel-selection/product/100038215"
-PRODUCT_URL = "https://www.finewineandgoodspirits.com/bulleit-straight-bourbon/product/000009000"
+PRODUCT_URL = "https://www.finewineandgoodspirits.com/w-l-weller-full-proof-straight-bourbon-single-barrel-selection/product/100038215"
+# PRODUCT_URL = "https://www.finewineandgoodspirits.com/bulleit-straight-bourbon/product/000009000"
 # PRODUCT_URL = None
 
 RETRY_TIME_IN_SECONDS = 10
@@ -43,10 +43,16 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger()
-
-
 service = Service(executable_path="chromedriver.exe")
-driver = webdriver.Chrome(service=service)
+
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run headless
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+# driver = webdriver.Chrome(service=service)
+
 wait = WebDriverWait(driver, 5)
 
 def start_bot():
@@ -57,6 +63,7 @@ def start_bot():
         get_product()
 
         if first_run:
+            confirm_age()
             login()
             first_run = False
 
@@ -64,13 +71,14 @@ def start_bot():
 
         if is_product_availible:
             add_to_cart()
-            
+
             try:
                 checkout()
             except Exception as e:
                 logger.error("Failed checkout. Trying again")
                 logger.error(f"Exception: {e}")
                 try:
+                    time.sleep(2)
                     get_product()
                     checkout()
                 except:
@@ -86,7 +94,6 @@ def start_bot():
 def get_product():
     if PRODUCT_URL is not None:
         driver.get(PRODUCT_URL)
-        confirm_age()
     elif PRODUCT is not None:
         load_home_page()
         confirm_age()
@@ -156,6 +163,7 @@ def check_if_availible():
     try:
         # Wait for the button to be present in the DOM
         wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='add-to-cart-button button full-width false' and text()='Coming Soon']")))
+        logger.info("Product not yet availible")
         return False
     except:
         logger.info("Product appears to be in stock...")

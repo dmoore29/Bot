@@ -102,3 +102,111 @@ Stacktrace:
 2024-10-12 14:01:36 - INFO - Continue to Payment button clicked.
 2024-10-12 14:01:39 - INFO - Entered security code
 2024-10-12 14:01:41 - INFO - Placed order
+2024-10-12 14:09:15 - INFO - Age confirmed
+2024-10-12 14:09:16 - INFO - Clicked login button
+2024-10-12 14:09:18 - INFO - Logged in successfully
+2024-10-12 14:09:18 - INFO - Product not yet availible
+2024-10-12 14:09:34 - INFO - Product not yet availible
+2024-10-12 14:09:50 - INFO - Product not yet availible
+2024-10-12 14:10:06 - INFO - Product not yet availible
+2024-10-12 14:10:24 - INFO - Product not yet availible
+2024-10-12 14:10:40 - INFO - Product not yet availible
+2024-10-12 14:10:56 - INFO - Product not yet availible
+2024-10-12 14:11:12 - INFO - Product not yet availible
+2024-10-12 14:11:28 - INFO - Product not yet availible
+2024-10-12 14:11:44 - INFO - Product not yet availible
+2024-10-12 14:12:00 - INFO - Product not yet availible
+2024-10-12 14:12:16 - INFO - Product not yet availible
+2024-10-12 14:12:32 - INFO - Product not yet availible
+2024-10-12 14:12:49 - INFO - Product not yet availible
+2024-10-12 14:13:05 - INFO - Product not yet availible
+2024-10-12 14:13:21 - INFO - Product not yet availible
+2024-10-12 14:13:37 - INFO - Product not yet availible
+2024-10-12 14:13:53 - INFO - Product not yet availible
+2024-10-12 14:14:09 - INFO - Product not yet availible
+2024-10-12 14:14:25 - INFO - Product not yet availible
+2024-10-12 14:14:41 - INFO - Product not yet availible
+2024-10-12 14:14:57 - INFO - Product not yet availible
+2024-10-12 14:15:32 - INFO - Age confirmed
+2024-10-12 14:15:35 - INFO - Clicked login button
+2024-10-12 14:15:37 - INFO - Logged in successfully
+2024-10-12 14:15:37 - INFO - Product not yet availible
+2024-10-12 14:15:56 - INFO - Product not yet availible
+2024-10-12 14:16:14 - INFO - Product not yet availible
+2024-10-12 14:16:32 - INFO - Product not yet availible
+2024-10-12 14:16:50 - INFO - Product not yet availible
+2024-10-12 14:17:09 - INFO - Product not yet availible
+2024-10-12 14:17:27 - INFO - Product not yet availible
+2024-10-12 14:17:45 - INFO - Product not yet availible
+2024-10-12 14:18:03 - INFO - Product not yet availible
+2024-10-12 14:18:22 - INFO - Product not yet availible
+2024-10-12 14:18:39 - INFO - Product not yet availible
+2024-10-12 14:18:57 - INFO - Product not yet availible
+2024-10-12 14:19:15 - INFO - Product not yet availible
+2024-10-12 14:19:34 - INFO - Product not yet availible
+2024-10-12 14:19:52 - INFO - Product not yet availible
+2024-10-12 14:20:03 - INFO - Age confirmed
+2024-10-12 14:20:08 - INFO - Clicked login button
+2024-10-12 14:20:10 - INFO - Logged in successfully
+2024-10-12 14:20:10 - INFO - Product not yet availible
+2024-10-12 14:20:30 - INFO - Product not yet availible
+2024-10-12 14:20:50 - INFO - Product not yet availible
+2024-10-12 14:21:10 - INFO - Product not yet availible
+2024-10-12 14:21:30 - INFO - Product not yet availible
+2024-10-12 14:21:50 - INFO - Product not yet availible
+2024-10-12 14:22:06 - INFO - Age confirmed
+2024-10-12 14:22:07 - INFO - Clicked login button
+2024-10-12 14:22:09 - INFO - Logged in successfully
+2024-10-12 14:22:09 - INFO - Product not yet availible
+2024-10-12 14:22:24 - INFO - Product not yet availible
+2024-10-12 14:22:39 - INFO - Product not yet availible
+2024-10-12 14:22:55 - INFO - Product not yet availible
+2024-10-12 14:23:10 - INFO - Product not yet availible
+2024-10-12 14:23:42 - INFO - Age confirmed
+2024-10-12 14:23:43 - INFO - Clicked login button
+2024-10-12 14:23:46 - INFO - Logged in successfully
+2024-10-12 14:23:51 - INFO - Product appears to be in stock...
+2024-10-12 14:23:53 - INFO - Shipping.
+2024-10-12 14:23:54 - INFO - Checking out
+2024-10-12 14:23:56 - INFO - Proceeded to checkout
+2024-10-12 14:23:57 - INFO - Ship to My Store radio button selected.
+2024-10-12 14:24:00 - INFO - Continue to Payment button clicked.
+2024-10-12 14:24:03 - INFO - Entered security code
+2024-10-12 14:24:05 - INFO - Placed order
+2024-10-12 14:26:28 - INFO - ====== WebDriver manager ======
+2024-10-12 14:26:28 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:26:29 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:26:29 - INFO - There is no [win64] chromedriver "129.0.6668.100" for browser google-chrome "129.0.6668" in cache
+2024-10-12 14:26:29 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:26:29 - INFO - WebDriver version 129.0.6668.100 selected
+2024-10-12 14:26:29 - INFO - Modern chrome version https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/win32/chromedriver-win32.zip
+2024-10-12 14:26:29 - INFO - About to download new driver from https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/win32/chromedriver-win32.zip
+2024-10-12 14:26:29 - INFO - Driver downloading response is 200
+2024-10-12 14:26:29 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:26:29 - INFO - Driver has been saved in cache [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100]
+2024-10-12 14:26:36 - INFO - Age confirmed
+2024-10-12 14:26:37 - INFO - Clicked login button
+2024-10-12 14:26:39 - INFO - Logged in successfully
+2024-10-12 14:26:44 - INFO - Product appears to be in stock...
+2024-10-12 14:26:50 - ERROR - Error while checking availability...
+2024-10-12 14:26:51 - INFO - Shipping.
+2024-10-12 14:26:57 - ERROR - Error while clicking ship...
+2024-10-12 14:26:58 - INFO - Checking out
+2024-10-12 14:27:00 - INFO - Proceeded to checkout
+2024-10-12 14:27:01 - INFO - Ship to My Store radio button selected.
+2024-10-12 14:27:02 - INFO - Popup close button clicked.
+2024-10-12 14:27:04 - INFO - Continue to Payment button clicked.
+2024-10-12 14:27:07 - INFO - Entered security code
+2024-10-12 14:27:09 - INFO - Placed order
+2024-10-12 14:27:50 - INFO - ====== WebDriver manager ======
+2024-10-12 14:27:50 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:27:51 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 14:27:51 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 14:27:57 - INFO - Age confirmed
+2024-10-12 14:27:59 - INFO - Clicked login button
+2024-10-12 14:28:01 - INFO - Logged in successfully
+2024-10-12 14:28:01 - INFO - Product not yet availible
+2024-10-12 14:28:17 - INFO - Product not yet availible
+2024-10-12 14:28:33 - INFO - Product not yet availible
+2024-10-12 14:28:48 - INFO - Product not yet availible
+2024-10-12 14:29:03 - INFO - Product not yet availible
