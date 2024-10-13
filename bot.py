@@ -121,8 +121,6 @@ def login():
 
     secret = get_secret()
 
-    print(secret)
-
     email_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_email")))
     email_input.clear()  # Clear any existing text
     email_input.send_keys(secret['email'])
@@ -368,7 +366,7 @@ def fetch_configuration(table_name, bot_name):
         else:
             raise ValueError("Configuration not found for bot.")
     except (NoCredentialsError, PartialCredentialsError) as e:
-        print("Error fetching configuration:", e)
+        logger.error("Error fetching configuration:", e)
 
 def parse_config(item):
     return {
