@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Bot Configuration</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Web Bot Configuration</h1>
+        <div id="productList"></div>
+        <button class="btn btn-success" id="addProductButton">Add New Product</button>
+        <button class="btn btn-primary" id="saveButton">Save Configuration</button>
+    </div>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1216.0.min.js"></script>
+    <script>
+        AWS.config.region = 'us-east-1';
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: 'us-east-1:f8f180df-93aa-4811-ab5d-2786fbfacf52'
+        });
+
+        const ddb = new AWS.DynamoDB();
+        let configuration;
+
+        // Function to fetch configuration from DynamoDB
+        function fetchConfiguration() {
+            const params = {
+                TableName: 'PurchaseBot', // Your DynamoDB table name
+                Key: {
+                    'botName': { S: 'finewineandgoodspiritsTEST' } // Your partition key and value
+                }
+            };
+
+            ddb.getItem(params, function(err, data) {
+                if (err) {
+                    console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    if (data.Item) {
+                        configuration = AWS.DynamoDB.Converter.unmarshall(data.Item);
+                        renderProducts();
+                    } else {
+                        console.error("Item not found in DynamoDB.");
+                    }
+                }
+            });
+        }
+
+
+        // Function to render products
+        function renderProducts() {
+            const productList = document.getElementById("productList");
+            productList.innerHTML = ""; // Clear previous entries
+            configuration.products.forEach((product, index) => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">Product ${index + 1}</h5>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" class="form-control" value="${product.quantity}" onchange="updateProduct(${index}, 'quantity', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select class="form-control" onchange="updateProduct(${index}, 'status', this.value)">
+                                <option value="unavailable" ${product.status === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+                                <option value="purchased" ${product.status === 'purchased' ? 'selected' : ''}>Purchased</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Input Type</label>
+                            <div>
+                                <label><input type="radio" name="inputType${index}" value="url" onchange="updateInputType(${index}, 'url')" ${product.url ? 'checked' : ''}> URL</label>
+                                <label><input type="radio" name="inputType${index}" value="name" onchange="updateInputType(${index}, 'name')" ${product.name ? 'checked' : ''}> Name</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>${product.url ? 'URL' : 'Name'}</label>
+                            <input type="text" class="form-control" value="${product.url || product.name || ''}" 
+                            onchange="updateProduct(${index}, '${product.url ? 'url' : 'name'}', this.value)">
+                        </div>
+                        <button class="btn btn-danger" onclick="removeProduct(${index})">Remove Product</button>
+                    </div>
+                `;
+                productList.appendChild(card);
+            });
+        }
+
+        // Function to update product information
+        function updateProduct(index, field, value) {
+            const product = configuration.products[index];
+
+            switch (field) {
+                case 'quantity':
+                    product.quantity = parseInt(value, 10);
+                    break;
+                case 'status':
+                    product.status = value;
+                    break;
+                case 'url':
+                    product.url = value;
+                    product.name = null; // Clear name if URL is set
+                    break;
+                case 'name':
+                    product.name = value;
+                    product.url = null; // Clear URL if Name is set
+                    break;
+                default:
+                    console.error("Invalid field for update:", field);
+                    return; // Exit if the field is not valid
+            }
+
+            // Update the product in the configuration
+            configuration.products[index] = product;
+            renderProducts(); // Re-render to reflect changes
+        }
+
+
+        // Function to update input type and reset the other field
+        function updateInputType(index, type) {
+            const product = configuration.products[index];
+            if (type === 'url') {
+                product.url = product.url || " "; // Ensure URL field is initialized
+                product.name = null; // Clear name if changing to URL
+            } else {
+                product.name = product.name || " "; // Ensure name field is initialized
+                product.url = null; // Clear URL if changing to Name
+            }
+
+            configuration.products[index] = product;
+            renderProducts(); // Re-render the products to update UI
+        }
+
+        // Function to add a new product
+        function addProduct() {
+            configuration.products.push({
+                quantity: 1,
+                status: "unavailable",
+                url: null,
+                name: null
+            });
+            renderProducts();
+        }
+
+        // Function to remove a product
+        function removeProduct(index) {
+            configuration.products.splice(index, 1);
+            renderProducts();
+        }
+
+        // Function to save configuration to DynamoDB
+        function saveConfiguration() {
+            const params = {
+                TableName: 'PurchaseBot', // Change to your DynamoDB table name
+                Item: AWS.DynamoDB.Converter.marshall(configuration)
+            };
+
+            ddb.putItem(params, function(err) {
+                if (err) {
+                    console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Configuration saved:", JSON.stringify(configuration, null, 2));
+                    alert("Configuration saved successfully!");
+                }
+            });
+        }
+
+        // Event listeners for buttons
+        document.getElementById("addProductButton").addEventListener("click", addProduct);
+        document.getElementById("saveButton").addEventListener("click", saveConfiguration);
+
+        // Initial render of products
+        window.onload = fetchConfiguration;
+    </script>
+</body>
+</html>

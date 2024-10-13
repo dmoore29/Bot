@@ -210,3 +210,120 @@ Stacktrace:
 2024-10-12 14:28:33 - INFO - Product not yet availible
 2024-10-12 14:28:48 - INFO - Product not yet availible
 2024-10-12 14:29:03 - INFO - Product not yet availible
+2024-10-12 17:06:50 - INFO - ====== WebDriver manager ======
+2024-10-12 17:06:51 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:06:51 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:06:51 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:06:53 - INFO - Age confirmed
+2024-10-12 17:06:55 - INFO - Clicked login button
+2024-10-12 17:09:46 - INFO - ====== WebDriver manager ======
+2024-10-12 17:09:46 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:09:47 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:09:47 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:09:49 - INFO - Age confirmed
+2024-10-12 17:09:50 - INFO - Clicked login button
+2024-10-12 17:10:05 - INFO - ====== WebDriver manager ======
+2024-10-12 17:10:06 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:10:06 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:10:06 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:10:08 - INFO - Age confirmed
+2024-10-12 17:10:10 - INFO - Clicked login button
+2024-10-12 17:11:12 - INFO - ====== WebDriver manager ======
+2024-10-12 17:11:12 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:11:12 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:11:13 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:11:16 - INFO - Age confirmed
+2024-10-12 17:11:17 - INFO - Clicked login button
+2024-10-12 17:13:17 - INFO - ====== WebDriver manager ======
+2024-10-12 17:13:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:13:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:13:17 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:13:20 - INFO - Age confirmed
+2024-10-12 17:13:21 - INFO - Clicked login button
+2024-10-12 17:13:56 - INFO - ====== WebDriver manager ======
+2024-10-12 17:13:56 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:13:56 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:13:56 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:14:00 - INFO - Age confirmed
+2024-10-12 17:14:01 - INFO - Clicked login button
+2024-10-12 17:17:04 - INFO - ====== WebDriver manager ======
+2024-10-12 17:17:05 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:17:05 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:17:05 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:17:08 - INFO - Age confirmed
+2024-10-12 17:17:09 - INFO - Clicked login button
+2024-10-12 17:17:10 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:18:16 - INFO - ====== WebDriver manager ======
+2024-10-12 17:18:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:18:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:18:17 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:18:22 - INFO - Age confirmed
+2024-10-12 17:18:23 - INFO - Clicked login button
+2024-10-12 17:18:24 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:20:20 - INFO - ====== WebDriver manager ======
+2024-10-12 17:20:20 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:20:20 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:20:20 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:20:24 - INFO - Age confirmed
+2024-10-12 17:20:25 - INFO - Clicked login button
+2024-10-12 17:20:26 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:21:03 - INFO - ====== WebDriver manager ======
+2024-10-12 17:21:04 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:21:04 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:21:04 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:21:07 - INFO - Age confirmed
+2024-10-12 17:21:08 - INFO - Clicked login button
+2024-10-12 17:21:09 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:22:25 - INFO - ====== WebDriver manager ======
+2024-10-12 17:22:26 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:22:26 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:22:26 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:22:29 - INFO - Age confirmed
+2024-10-12 17:22:30 - INFO - Clicked login button
+2024-10-12 17:22:31 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:23:00 - INFO - ====== WebDriver manager ======
+2024-10-12 17:23:00 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:23:00 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:23:00 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:23:04 - INFO - Age confirmed
+2024-10-12 17:23:05 - INFO - Clicked login button
+2024-10-12 17:23:06 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:25:16 - INFO - ====== WebDriver manager ======
+2024-10-12 17:25:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:25:17 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 17:25:17 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 17:25:20 - INFO - Age confirmed
+2024-10-12 17:25:21 - INFO - Clicked login button
+2024-10-12 17:25:22 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 17:25:24 - INFO - Logged in successfully
+2024-10-12 17:25:24 - INFO - Product not yet availible
+2024-10-12 17:25:35 - INFO - Product not yet availible
+2024-10-12 17:25:46 - INFO - Product not yet availible
+2024-10-12 17:25:57 - INFO - Product not yet availible
+2024-10-12 17:26:08 - INFO - Product not yet availible
+2024-10-12 17:26:19 - INFO - Product not yet availible
+2024-10-12 17:26:30 - INFO - Product not yet availible
+2024-10-12 18:43:04 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 18:45:17 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 18:45:20 - INFO - Age confirmed
+2024-10-12 18:45:21 - INFO - Clicked login button
+2024-10-12 18:45:22 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 18:45:24 - INFO - Logged in successfully
+2024-10-12 18:45:24 - INFO - Product not yet availible
+2024-10-12 18:45:40 - INFO - Product not yet availible
+2024-10-12 19:07:00 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 19:07:04 - INFO - Age confirmed
+2024-10-12 19:07:05 - INFO - Clicked login button
+2024-10-12 19:07:06 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 19:07:08 - INFO - Logged in successfully
+2024-10-12 19:07:08 - INFO - Product not yet availible
+2024-10-12 23:02:27 - INFO - ====== WebDriver manager ======
+2024-10-12 23:02:28 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 23:02:28 - INFO - Get LATEST chromedriver version for google-chrome
+2024-10-12 23:02:28 - INFO - Driver [C:\Users\david\.wdm\drivers\chromedriver\win64\129.0.6668.100\chromedriver-win32/chromedriver.exe] found in cache
+2024-10-12 23:02:29 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 23:02:35 - INFO - Age confirmed
+2024-10-12 23:02:36 - INFO - Clicked login button
+2024-10-12 23:02:37 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2024-10-12 23:02:39 - INFO - Logged in successfully
+2024-10-12 23:02:39 - INFO - Product not yet availible

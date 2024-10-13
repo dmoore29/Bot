@@ -1,3 +1,4 @@
+import json
 import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,23 +8,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import time
 
 
 ################################################################
 #                       CONFIGURATION                          #
 ################################################################
-
-# PRODUCT = "W L Weller Full Proof Straight"
-PRODUCT = "Horse Soldier Straight Bourbon"
-PRODUCT_URL = "https://www.finewineandgoodspirits.com/w-l-weller-full-proof-straight-bourbon-single-barrel-selection/product/100038215"
-# PRODUCT_URL = "https://www.finewineandgoodspirits.com/bulleit-straight-bourbon/product/000009000"
-# PRODUCT_URL = None
-
-RETRY_TIME_IN_SECONDS = 10
-EMAIL = "davidmoore777@icloud.com"
-PASSWORD = "DavidTest1862!"
-PHONE_NUMBER = 7171231234
 
 # PICKUP_METHOD = "IN_STORE" # In store typically means same day so is likely unavailible
 PICKUP_METHOD = "SHIP"
@@ -51,6 +43,9 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
+session = boto3.session.Session()
+dynamodb = boto3.client('dynamodb', region_name='us-east-1')
+
 # driver = webdriver.Chrome(service=service)
 
 wait = WebDriverWait(driver, 5)
@@ -59,8 +54,12 @@ def start_bot():
     is_product_availible = False
     first_run = True
 
+    config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
+    retry_interval = config['retry_interval']
+    product = config['products']
+
     while not is_product_availible:
-        get_product()
+        get_product(product[0])
 
         if first_run:
             confirm_age()
@@ -79,25 +78,30 @@ def start_bot():
                 logger.error(f"Exception: {e}")
                 try:
                     time.sleep(2)
-                    get_product()
+                    get_product(product_urls[0])
                     checkout()
                 except:
                     logger.error("Failed checkout. Quitting")
                     logger.error(f"Exception: {e}")
                     close()
-        time.sleep(RETRY_TIME_IN_SECONDS)
+        time.sleep(retry_interval)
 
     driver.quit()
     # TODO: Handle logic to retry checkout
 
 
-def get_product():
-    if PRODUCT_URL is not None:
-        driver.get(PRODUCT_URL)
-    elif PRODUCT is not None:
+def get_product(product):
+
+    # TEMP CODE. UPDATE THIS
+    product_url = product['url']
+    name = product['name']
+
+    if product_url is not None:
+        driver.get(product_url)
+    elif product_url is not None:
         load_home_page()
         confirm_age()
-        search_for_product()
+        search_for_product(name)
     else:
         logger.error("Product name or URL must be specified")
         driver.quit()
@@ -115,13 +119,17 @@ def login():
 
     time.sleep(1)
 
+    secret = get_secret()
+
+    print(secret)
+
     email_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_email")))
     email_input.clear()  # Clear any existing text
-    email_input.send_keys(EMAIL)  # Enter the email address
+    email_input.send_keys(secret['email'])
 
     password_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_password")))
     password_input.clear()  # Clear any existing text
-    password_input.send_keys(PASSWORD)  # Enter the email address
+    password_input.send_keys(secret['password'])
 
     time.sleep(1)
 
@@ -146,15 +154,15 @@ def confirm_age():
         pass
 
 
-def search_for_product():
+def search_for_product(name):
     input_field = wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@aria-label='search']")))
-    input_field.send_keys(PRODUCT)
+    input_field.send_keys(name)
     input_field.send_keys(Keys.RETURN)
-    logger.info(f"Searched for product: {PRODUCT}")
+    logger.info(f"Searched for product: {name}")
 
     time.sleep(2)
-    input_field = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, PRODUCT)))
-    link = driver.find_element(By.PARTIAL_LINK_TEXT, PRODUCT)
+    input_field = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, name)))
+    link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
     link.click()
     time.sleep(2)
 
@@ -325,5 +333,56 @@ def was_checkout_successful():
 
 def close():
     driver.quit()
+
+
+def get_secret():
+
+    secret_name = "finewineandgoodspirits"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except Exception as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    return json.loads(get_secret_value_response['SecretString'])
+
+def fetch_configuration(table_name, bot_name):
+    try:
+        response = dynamodb.get_item(
+            TableName=table_name,
+            Key={'botName': {'S': bot_name}}
+        )
+        if 'Item' in response:
+            return parse_config(response['Item'])
+        else:
+            raise ValueError("Configuration not found for bot.")
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print("Error fetching configuration:", e)
+
+def parse_config(item):
+    return {
+        "bot_name": item['botName']['S'],
+        "products": [
+            {
+                "url": product['M'].get('url', {}).get('S', None),
+                "name": product['M'].get('name', {}).get('S', None),
+                "quantity": int(product['M']['quantity']['N']),
+                "status": product['M']['status']['S']
+            }
+            for product in item['products']['L']
+        ],
+        "retry_interval": int(item['retryInterval']['N'])
+    }
 
 start_bot()
