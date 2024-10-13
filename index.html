@@ -36,7 +36,7 @@
             const params = {
                 TableName: 'PurchaseBot', // Your DynamoDB table name
                 Key: {
-                    'botName': { S: 'finewineandgoodspiritsTEST' } // Your partition key and value
+                    'botName': { S: 'finewineandgoodspirits' } // Your partition key and value
                 }
             };
 
@@ -72,8 +72,9 @@
                         <div class="form-group">
                             <label>Status</label>
                             <select class="form-control" onchange="updateProduct(${index}, 'status', this.value)">
-                                <option value="unavailable" ${product.status === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+                                <option value="coming_soon" ${product.status === 'coming_soon' ? 'selected' : ''}>Coming Soon</option>
                                 <option value="purchased" ${product.status === 'purchased' ? 'selected' : ''}>Purchased</option>
+                                <option value="error" ${product.status === 'error' ? 'selected' : ''}>Error</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -144,8 +145,8 @@
         function addProduct() {
             configuration.products.push({
                 quantity: 1,
-                status: "unavailable",
-                url: null,
+                status: "coming_soon",
+                url: " ",
                 name: null
             });
             renderProducts();

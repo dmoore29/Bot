@@ -10,7 +10,19 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from bot_dao import fetch_configuration, insert_configuration
 import time
+
+
+###
+# TODO: Improve logging
+# TODO: Empty cart
+# TODO: Validate price
+# TODO: Fix searching
+# TODO: Rename unavilible
+# TODO: Add all configs to frontend
+# TODO: Handle error while adding to cart to just move on  https://www.finewineandgoodspirits.com/jim-beam-straight-bourbon-winter-reserve/product/100034205
+# TODO: Fix issue where it is looking at buttons lower on screen
 
 
 ################################################################
@@ -44,7 +56,6 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 session = boto3.session.Session()
-dynamodb = boto3.client('dynamodb', region_name='us-east-1')
 
 # driver = webdriver.Chrome(service=service)
 
@@ -55,56 +66,94 @@ def start_bot():
     first_run = True
 
     config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
-    retry_interval = config['retry_interval']
-    product = config['products']
+    logger.info(f"Retrieved config: {config}")
+    retry_interval = config['retryInterval']
+    product_count = len(config['products'])
+    index = 0  # Initialize the index
 
-    while not is_product_availible:
-        get_product(product[0])
-
-        if first_run:
-            confirm_age()
-            login()
-            first_run = False
-
-        is_product_availible = check_if_availible()
-
-        if is_product_availible:
-            add_to_cart()
-
+    while product_count > 0:
+        logger.info(f"TEMP: Product count, {product_count}, is greater than 0")
+        while index < product_count:
+            logger.info(f"TEMP: Index, {index}, is less than product count, {product_count}")
+            product = config['products'][index]
+            if product['status'] != "coming_soon":
+                logger.info("Already purchased")
+                index += 1
+                continue
             try:
-                checkout()
-            except Exception as e:
-                logger.error("Failed checkout. Trying again")
-                logger.error(f"Exception: {e}")
+                get_product(product)
+            except:
+                logger.error("Failed to get product")
+                config = mark_as_error(config, index)
+                index += 1
+                continue
+
+            logger.info("Checking product")
+
+            if first_run:
+                logger.info("First run")
+                confirm_age()
+                login()
+                first_run = False
+                time.sleep(2)
+
+            is_product_availible = check_if_availible()
+
+            if is_product_availible:
                 try:
-                    time.sleep(2)
-                    get_product(product_urls[0])
-                    checkout()
+                    add_to_cart()
                 except:
-                    logger.error("Failed checkout. Quitting")
+                    logger.error("Failed to add to cart. Marking product as error")
+                    config = mark_as_error(config, index)
+                    index += 1
+                    continue
+
+                try:
+                    checkout()
+                except Exception as e:
+                    logger.error("Failed checkout. Trying again")
                     logger.error(f"Exception: {e}")
-                    close()
+                    try:
+                        time.sleep(2)
+                        get_product(product)
+                        checkout()
+                    except:
+                        logger.error("Failed checkout. Quitting")
+                        logger.error(f"Exception: {e}")
+                        close()
+
+                config = mark_as_purchased(config, index)
+
+            index += 1  # Move to the next product
+            logger.info("Moving to next product")
+            time.sleep(2)
+
+        # Reset index if all products have been checked
+        if index >= product_count:
+            index = 0  # Restart from the first product
+            
         time.sleep(retry_interval)
 
     driver.quit()
-    # TODO: Handle logic to retry checkout
 
 
 def get_product(product):
-
-    # TEMP CODE. UPDATE THIS
     product_url = product['url']
     name = product['name']
 
     if product_url is not None:
+        logger.info(f"Loading URL {product_url}")
         driver.get(product_url)
-    elif product_url is not None:
+    elif name is not None:
+        logger.info(f"Searcing name {name}")
         load_home_page()
         confirm_age()
         search_for_product(name)
     else:
         logger.error("Product name or URL must be specified")
         driver.quit()
+
+    time.sleep(2)
 
 
 def login():
@@ -139,9 +188,11 @@ def login():
         logger.error("Error while logging in...")
         close()
 
+
 def load_home_page():
     driver.get("https://finewineandgoodspirits.com")
     logger.info("Loaded home page")
+
 
 def confirm_age():
     try:
@@ -153,22 +204,26 @@ def confirm_age():
 
 
 def search_for_product(name):
-    input_field = wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@aria-label='search']")))
-    input_field.send_keys(name)
-    input_field.send_keys(Keys.RETURN)
-    logger.info(f"Searched for product: {name}")
+    try:
+        input_field = wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@aria-label='search']")))
+        input_field.send_keys(name)
+        input_field.send_keys(Keys.RETURN)
+        logger.info(f"Searched for product: {name}")
 
-    time.sleep(2)
-    input_field = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, name)))
-    link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
-    link.click()
-    time.sleep(2)
+        time.sleep(2)
+        input_field = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, name)))
+        link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
+        link.click()
+        time.sleep(2)
+    except:
+        logger.error(f"Failed to search for {name}")
+        raise
 
 
 def check_if_availible():
     try:
         # Wait for the button to be present in the DOM
-        wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='add-to-cart-button button full-width false' and text()='Coming Soon']")))
+        wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false' and text()='Coming Soon']")))
         logger.info("Product not yet availible")
         return False
     except:
@@ -180,6 +235,7 @@ def add_to_cart():
     time.sleep(1)
 
     try:
+        logger.info("Adding to cart")
         availability_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='link' and text()='Click to see availability.']")))
         availability_button.click()
     except:
@@ -217,11 +273,11 @@ def add_to_cart():
     time.sleep(1)
 
     try:
-        add_to_cart_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='add-to-cart-button button full-width false']")))
+        add_to_cart_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false']")))
         add_to_cart_button.click()
     except:
         logger.error("Error while adding to cart...")
-        close()
+        raise()
 
 
 def checkout():
@@ -316,14 +372,17 @@ def checkout():
 
     time.sleep(10)
 
+
 def click_popup_close_button():
     try:
         # Wait for the close button to be clickable
         close_button = driver.find_element(By.CLASS_NAME, "ltkpopup-close")
         close_button.click()  # Click the close button
         logger.info("Popup close button clicked.")
+        time.sleep(2)
     except:
         pass
+
 
 def was_checkout_successful():
     return True
@@ -355,32 +414,17 @@ def get_secret():
 
     return json.loads(get_secret_value_response['SecretString'])
 
-def fetch_configuration(table_name, bot_name):
-    try:
-        response = dynamodb.get_item(
-            TableName=table_name,
-            Key={'botName': {'S': bot_name}}
-        )
-        if 'Item' in response:
-            return parse_config(response['Item'])
-        else:
-            raise ValueError("Configuration not found for bot.")
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        logger.error("Error fetching configuration:", e)
+def mark_as_purchased(config, index):
+    config['products'][index]['status'] = 'purchased'
+    logger.info(f"Inserting config: {config}")
+    insert_configuration("PurchaseBot", config)
+    return config
 
-def parse_config(item):
-    return {
-        "bot_name": item['botName']['S'],
-        "products": [
-            {
-                "url": product['M'].get('url', {}).get('S', None),
-                "name": product['M'].get('name', {}).get('S', None),
-                "quantity": int(product['M']['quantity']['N']),
-                "status": product['M']['status']['S']
-            }
-            for product in item['products']['L']
-        ],
-        "retry_interval": int(item['retryInterval']['N'])
-    }
+
+def mark_as_error(config, index):
+    config['products'][index]['status'] = 'error'
+    logger.info(f"Inserting config: {config}")
+    insert_configuration("PurchaseBot", config)
+    return config
 
 start_bot()
