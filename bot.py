@@ -288,27 +288,34 @@ def checkout():
 
     click_popup_close_button()
 
-    try:
-        cart_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
-        cart_button.click()
-        logger.info("Clicked cart")
-    except:
-        logger.error("Error while clicking cart...")
-        raise
+    # try:
+    #     cart_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
+    #     cart_button.click()
+    #     logger.info("Clicked cart")
+    # except:
+    #     logger.error("Error while clicking cart...")
+    #     raise
 
-    time.sleep(3)
+    # time.sleep(3)
 
-    click_popup_close_button()
+    # click_popup_close_button()
         
-    try:
-        checkout_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
-        checkout_button.click()
-        logger.info("Proceeded to checkout")
-    except:
-        logger.error("Error while going to checkout...")
-        raise
+    # try:
+    #     checkout_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
+    #     checkout_button.click()
+    #     logger.info("Proceeded to checkout")
+    # except Exception as e:
+    #     logger.error("Error while going to checkout...")
+    #     logger.error(e)
+    #     raise
 
-    time.sleep(3)
+    try:
+        driver.get("https://www.finewineandgoodspirits.com/checkout")
+        logger.info("Navigated to checkout")
+    except:
+        logger.error("Failed to navigate to checkout page")
+
+    time.sleep(4)
 
     click_popup_close_button()
 
@@ -385,7 +392,7 @@ def click_popup_close_button():
         close_button = driver.find_element(By.CLASS_NAME, "ltkpopup-close")
         close_button.click()  # Click the close button
         logger.info("Popup close button clicked.")
-        time.sleep(4)
+        time.sleep(2)
     except:
         pass
 
