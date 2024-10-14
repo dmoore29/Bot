@@ -1,39 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>David's Purchasing Bot Configuration</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            padding: 20px;
-        }
-        .card {
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-center">David's Purchasing Bot Configuration</h1>
-
-        <!-- Controls for Start, Stop, and Status -->
-        <div class="text-center mb-4">
-            <button class="btn btn-success" id="startButton">Start</button>
-            <button class="btn btn-danger" id="stopButton">Stop</button>
-            <button class="btn btn-info" id="statusButton">Check Status</button>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>David's Purchasing Bot Configuration</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Roboto', sans-serif;
+                background-color: #f5f6fa;
+                padding: 40px 20px;
+            }
+            h1 {
+                color: #232f3e;
+                font-weight: 700;
+                margin-bottom: 30px;
+            }
+            .btn {
+                font-weight: 500;
+            }
+            .btn-success {
+                background-color: #1d8102;
+                border-color: #1d8102;
+            }
+            .btn-danger {
+                background-color: #d13212;
+                border-color: #d13212;
+            }
+            .btn-info {
+                background-color: #007eb9;
+                border-color: #007eb9;
+            }
+            .card {
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                border: none;
+                margin-bottom: 20px;
+            }
+            .card-body {
+                padding: 20px;
+            }
+            label {
+                font-weight: 500;
+                color: #555;
+            }
+            input.form-control, select.form-control {
+                box-shadow: none;
+                border-radius: 4px;
+            }
+            .form-control:focus {
+                border-color: #007eb9;
+                box-shadow: none;
+            }
+            .btn:hover {
+                opacity: 0.9;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            .text-center {
+                margin-bottom: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="text-center">David's Purchasing Bot Configuration</h1>
+    
+            <!-- Controls for Start, Stop, and Status -->
+            <div class="text-center mb-4">
+                <button class="btn btn-success mx-2" id="startButton">Start</button>
+                <button class="btn btn-danger mx-2" id="stopButton">Stop</button>
+                <button class="btn btn-info mx-2" id="statusButton">Check Status</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="retryInterval">Retry Interval (seconds)</label>
+                <input type="number" class="form-control" id="retryInterval" value="${configuration.retryInterval || 10}" onchange="updateRetryInterval(this.value)">
+            </div>
+    
+            <div id="productList"></div>
+            <button class="btn btn-success mt-3" id="addProductButton">Add New Product</button>
+            <button class="btn btn-primary mt-3" id="saveButton">Save Configuration</button>
         </div>
-        
-        <div class="form-group">
-            <label for="retryInterval">Retry Interval (seconds)</label>
-            <input type="number" class="form-control" id="retryInterval" value="${configuration.retryInterval || 10}" onchange="updateRetryInterval(this.value)">
-        </div>
-
-        <div id="productList"></div>
-        <button class="btn btn-success" id="addProductButton">Add New Product</button>
-        <button class="btn btn-primary" id="saveButton">Save Configuration</button>
-    </div>
 
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1216.0.min.js"></script>
     <script>
