@@ -47,15 +47,15 @@ logging.basicConfig(
 logger = logging.getLogger()
 service = Service(executable_path="chromedriver.exe")
 
-# chrome_options = Options()
-# chrome_options.add_argument("--headless")  # Run headless
-# chrome_options.add_argument("--no-sandbox")
-# chrome_options.add_argument("--disable-dev-shm-usage")
-# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run headless
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 session = boto3.session.Session()
 
-driver = webdriver.Chrome(service=service)
+# driver = webdriver.Chrome(service=service)
 
 wait = WebDriverWait(driver, 5)
 
