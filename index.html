@@ -17,14 +17,24 @@
 <body>
     <div class="container">
         <h1 class="text-center">David's Purchasing Bot Configuration</h1>
+
+        <!-- Controls for Start, Stop, and Status -->
+        <div class="text-center mb-4">
+            <button class="btn btn-success" id="startButton">Start</button>
+            <button class="btn btn-danger" id="stopButton">Stop</button>
+            <button class="btn btn-info" id="statusButton">Check Status</button>
+        </div>
+        
         <div class="form-group">
             <label for="retryInterval">Retry Interval (seconds)</label>
             <input type="number" class="form-control" id="retryInterval" value="${configuration.retryInterval || 10}" onchange="updateRetryInterval(this.value)">
         </div>
+
         <div id="productList"></div>
         <button class="btn btn-success" id="addProductButton">Add New Product</button>
         <button class="btn btn-primary" id="saveButton">Save Configuration</button>
     </div>
+
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1216.0.min.js"></script>
     <script>
         AWS.config.region = 'us-east-1';
@@ -38,9 +48,9 @@
         // Function to fetch configuration from DynamoDB
         function fetchConfiguration() {
             const params = {
-                TableName: 'PurchaseBot', // Your DynamoDB table name
+                TableName: 'PurchaseBot',
                 Key: {
-                    'botName': { S: 'finewineandgoodspirits' } // Your partition key and value
+                    'botName': { S: 'finewineandgoodspirits' }
                 }
             };
 
@@ -57,6 +67,28 @@
                     }
                 }
             });
+        }
+
+        // API functions for Start, Stop, and Status
+        function startBot() {
+            fetch('http://98.83.74.128:5000/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(`Start Bot Response: ${JSON.stringify(data)}`))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function stopBot() {
+            fetch('http://98.83.74.128:5000/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(`Stop Bot Response: ${JSON.stringify(data)}`))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function checkStatus() {
+            fetch('http://98.83.74.128:5000/status')
+                .then(response => response.json())
+                .then(data => alert(`Bot Status: ${JSON.stringify(data)}`))
+                .catch(error => console.error('Error:', error));
         }
 
         // Function to render products
@@ -113,23 +145,21 @@
                     break;
                 case 'url':
                     product.url = value;
-                    product.name = null; // Clear name if URL is set
+                    product.name = null;
                     break;
                 case 'name':
                     product.name = value;
-                    product.url = null; // Clear URL if Name is set
+                    product.url = null;
                     break;
                 default:
                     console.error("Invalid field for update:", field);
-                    return; // Exit if the field is not valid
+                    return;
             }
 
-            // Update the product in the configuration
             configuration.products[index] = product;
-            renderProducts(); // Re-render to reflect changes
+            renderProducts();
         }
 
-        // Function to update retry interval
         function updateRetryInterval(value) {
             configuration.retryInterval = parseInt(value, 10);
         }
@@ -138,15 +168,15 @@
         function updateInputType(index, type) {
             const product = configuration.products[index];
             if (type === 'url') {
-                product.url = product.url || " "; // Ensure URL field is initialized
-                product.name = null; // Clear name if changing to URL
+                product.url = product.url || " ";
+                product.name = null;
             } else {
-                product.name = product.name || " "; // Ensure name field is initialized
-                product.url = null; // Clear URL if changing to Name
+                product.name = product.name || " ";
+                product.url = null;
             }
 
             configuration.products[index] = product;
-            renderProducts(); // Re-render the products to update UI
+            renderProducts();
         }
 
         // Function to add a new product
@@ -169,7 +199,7 @@
         // Function to save configuration to DynamoDB
         function saveConfiguration() {
             const params = {
-                TableName: 'PurchaseBot', // Change to your DynamoDB table name
+                TableName: 'PurchaseBot',
                 Item: AWS.DynamoDB.Converter.marshall(configuration)
             };
 
@@ -186,6 +216,11 @@
         // Event listeners for buttons
         document.getElementById("addProductButton").addEventListener("click", addProduct);
         document.getElementById("saveButton").addEventListener("click", saveConfiguration);
+
+        // Event listeners for control buttons
+        document.getElementById("startButton").addEventListener("click", startBot);
+        document.getElementById("stopButton").addEventListener("click", stopBot);
+        document.getElementById("statusButton").addEventListener("click", checkStatus);
 
         // Initial render of products
         window.onload = fetchConfiguration;
