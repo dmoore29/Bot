@@ -275,6 +275,7 @@ def add_to_cart():
     try:
         add_to_cart_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false']")))
         add_to_cart_button.click()
+        logger.info("Added to cart.")
     except:
         logger.error("Error while adding to cart...")
         raise()
@@ -288,8 +289,9 @@ def checkout():
     click_popup_close_button()
 
     try:
-        cart_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
+        cart_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
         cart_button.click()
+        logger.info("Clicked cart")
     except:
         logger.error("Error while clicking cart...")
         raise
