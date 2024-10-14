@@ -20,6 +20,7 @@ import time
 # TODO: Validate price
 # TODO: Fix searching
 # TODO: Add all configs to frontend
+# TODO: Add credit card security code to secrets manager
 
 
 ################################################################
@@ -46,15 +47,15 @@ logging.basicConfig(
 logger = logging.getLogger()
 service = Service(executable_path="chromedriver.exe")
 
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run headless
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+# chrome_options = Options()
+# chrome_options.add_argument("--headless")  # Run headless
+# chrome_options.add_argument("--no-sandbox")
+# chrome_options.add_argument("--disable-dev-shm-usage")
+# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 session = boto3.session.Session()
 
-# driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=service)
 
 wait = WebDriverWait(driver, 5)
 
@@ -69,9 +70,11 @@ def start_bot():
     index = 0  # Initialize the index
 
     while product_count > 0:
-        logger.info(f"TEMP: Product count, {product_count}, is greater than 0")
+        config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
+
+        # logger.info(f"TEMP: Product count, {product_count}, is greater than 0")
         while index < product_count:
-            logger.info(f"TEMP: Index, {index}, is less than product count, {product_count}")
+            # logger.info(f"TEMP: Index, {index}, is less than product count, {product_count}")
             product = config['products'][index]
             if product['status'] != "coming_soon":
                 logger.info("Already purchased")
@@ -99,8 +102,8 @@ def start_bot():
             if is_product_availible:
                 try:
                     add_to_cart()
-                except:
-                    logger.error("Failed to add to cart. Marking product as error")
+                except Exception as e:
+                    logger.error("Failed to add to cart. Marking product as error", exc_info=True)
                     config = mark_as_error(config, index)
                     index += 1
                     continue
@@ -108,15 +111,13 @@ def start_bot():
                 try:
                     checkout()
                 except Exception as e:
-                    logger.error("Failed checkout. Trying again")
-                    logger.error(f"Exception: {e}")
+                    logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
                         get_product(product)
                         checkout()
                     except:
-                        logger.error("Failed checkout. Quitting")
-                        logger.error(f"Exception: {e}")
+                        logger.error("Failed checkout. Quitting", exc_info=True)
                         close()
 
                 config = mark_as_purchased(config, index)
@@ -208,7 +209,7 @@ def search_for_product(name):
         logger.info(f"Searched for product: {name}")
 
         time.sleep(4)
-        input_field = wait.until(EC.visibility_of_element_located((By.PARTIAL_LINK_TEXT, name)))
+        input_field = wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, name)))
         link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
         link.click()
         time.sleep(4)
@@ -218,6 +219,7 @@ def search_for_product(name):
 
 
 def check_if_availible():
+    click_popup_close_button()
     try:
         # Wait for the button to be present in the DOM
         wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false' and text()='Coming Soon']")))
@@ -235,17 +237,18 @@ def add_to_cart():
 
     try:
         logger.info("Adding to cart")
-        availability_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='link' and text()='Click to see availability.']")))
+        availability_button = wait.until(EC.element_to_be_clickable ((By.XPATH, "//button[@class='link' and text()='Click to see availability.']")))
         availability_button.click()
     except:
         logger.error("Error while checking availability...")
 
     time.sleep(3)
+    click_popup_close_button()
 
     if PICKUP_METHOD == "IN_STORE":
         logger.info("Picking up in store.")
         try:
-            ship_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='button fulfillment ' and .//p[text()='Pick Up']]")))
+            ship_button = wait.until(EC.element_to_be_clickable ((By.XPATH, "//div[@role='dialog']//button[@class='button fulfillment ' and .//p[text()='Pick Up']]")))
             driver.execute_script("arguments[0].click();", ship_button)
         except:
             logger.error("Error while clicking pick up...")
@@ -262,8 +265,12 @@ def add_to_cart():
     elif PICKUP_METHOD == "SHIP":
         logger.info("Shipping.")
         try:
-            ship_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='button fulfillment ' and .//p[text()='Ship']]")))
-            driver.execute_script("arguments[0].click();", ship_button)
+            ship_button = wait.until(EC.element_to_be_clickable((
+                By.XPATH, 
+                "//div[h4[@id='fulfillmentMethod' and text()='How would you like to shop?']]//button[@class='button fulfillment ' and .//p[@class='fulfillment' and text()='Ship'] and .//p[@class='small' and text()='To Me or My Store']]"
+            )))            
+            ship_button.click()
+            logger.info("Clicked ship")
         except:
             logger.error("Error while clicking ship...")
     else:
@@ -279,6 +286,8 @@ def add_to_cart():
     except:
         logger.error("Error while adding to cart...")
         raise()
+    
+    time.sleep(3)
 
 
 def checkout():
