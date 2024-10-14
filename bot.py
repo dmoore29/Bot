@@ -208,7 +208,7 @@ def search_for_product(name):
         logger.info(f"Searched for product: {name}")
 
         time.sleep(4)
-        input_field = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, name)))
+        input_field = wait.until(EC.visibility_of_element_located((By.PARTIAL_LINK_TEXT, name)))
         link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
         link.click()
         time.sleep(4)
@@ -301,7 +301,7 @@ def checkout():
     click_popup_close_button()
         
     try:
-        checkout_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
+        checkout_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
         checkout_button.click()
         logger.info("Proceeded to checkout")
     except:
