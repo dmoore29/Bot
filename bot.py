@@ -63,14 +63,14 @@ def start_bot():
     is_product_availible = False
     first_run = True
 
-    config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
-    logger.info(f"Retrieved config: {config}")
-    retry_interval = config['retryInterval']
-    product_count = len(config['products'])
     index = 0  # Initialize the index
 
     while product_count > 0:
         config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
+        logger.info(f"Retrieved config: {config}")
+        retry_interval = config['retryInterval']
+        product_count = len(config['products'])
+
 
         # logger.info(f"TEMP: Product count, {product_count}, is greater than 0")
         while index < product_count:
