@@ -62,7 +62,7 @@ wait = WebDriverWait(driver, 5)
 def start_bot():
     is_product_availible = False
     first_run = True
-
+    product_count = 1
     index = 0  # Initialize the index
 
     while product_count > 0:
