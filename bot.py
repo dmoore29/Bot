@@ -219,6 +219,7 @@ def search_for_product(name):
 
 
 def check_if_availible():
+    time.sleep(8)
     click_popup_close_button()
     try:
         # Wait for the button to be present in the DOM
