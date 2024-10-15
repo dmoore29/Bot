@@ -103,10 +103,22 @@ def start_bot():
                 try:
                     add_to_cart()
                 except Exception as e:
-                    logger.error("Failed to add to cart. Marking product as error", exc_info=True)
-                    config = mark_as_error(config, index)
-                    index += 1
-                    continue
+                    logger.error("Failed to add to cart. Maybe the product isn't availible. Checking again.")
+                    try:
+                        get_product(product)
+                        if (check_if_availible):
+                            logger.info("Looks like product is still availible. Trying to add to cart again.")
+                            add_to_cart()
+                            logger.info("Successfully added to cart on retry")
+                        else:
+                            logger.info("Actually, the product is not availible.")
+                            index += 1
+                            continue
+                    except:
+                        logger.error("Failed to add to cart. Marking product as error", exc_info=True)
+                        config = mark_as_error(config, index)
+                        index += 1
+                        continue
 
                 try:
                     checkout()
