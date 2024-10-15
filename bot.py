@@ -228,6 +228,7 @@ def check_if_availible():
         return False
     except:
         logger.info("Product appears to be in stock...")
+        logger.info("Page source snapshot for debugging: \n" + driver.page_source)
         return True  # Button does not exist
 
 
@@ -273,6 +274,8 @@ def add_to_cart():
             ship_button.click()
             logger.info("Clicked ship")
         except:
+            logger.info("Page source snapshot for debugging: \n" + driver.page_source)
+            driver.save_screenshot("screenshot_error.png")
             logger.error("Error while clicking ship...")
     else:
         logger.error("Unsupported shipping method. Must be either IN_STORE or SHIP")
