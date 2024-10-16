@@ -57,7 +57,6 @@ session = boto3.session.Session()
 
 def start_bot():
     is_product_availible = False
-    first_run = True
     product_count = 1
     index = 0  # Initialize the index
 
@@ -90,12 +89,10 @@ def start_bot():
 
             logger.info("Checking product")
 
-            if first_run:
-                logger.info("First run")
-                confirm_age(driver, wait)
-                login(driver, wait)
-                first_run = False
-                time.sleep(4)
+            logger.info("First run")
+            confirm_age(driver, wait)
+            login(driver, wait)
+            time.sleep(4)
 
             is_product_availible = check_if_availible(driver, wait)
 
@@ -442,6 +439,7 @@ def get_secret():
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
         )
+        logger.info("Retrieved secret")
     except Exception as e:
         # For a list of exceptions thrown, see
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
