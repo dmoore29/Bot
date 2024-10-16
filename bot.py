@@ -51,13 +51,9 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")  # Run headless
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+chrome_options.add_argument("--incognito")
 
 session = boto3.session.Session()
-
-# driver = webdriver.Chrome(service=service)
-
-wait = WebDriverWait(driver, 5)
 
 def start_bot():
     is_product_availible = False
@@ -66,6 +62,10 @@ def start_bot():
     index = 0  # Initialize the index
 
     while product_count > 0:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        wait = WebDriverWait(driver, 8)
+        time.sleep(4)
+
         config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
         logger.info(f"Retrieved config: {config}")
         retry_interval = config['retryInterval']
@@ -81,7 +81,7 @@ def start_bot():
                 index += 1
                 continue
             try:
-                get_product(product)
+                get_product(product, driver, wait)
             except:
                 logger.error("Failed to get product")
                 config = mark_as_error(config, index)
@@ -92,23 +92,23 @@ def start_bot():
 
             if first_run:
                 logger.info("First run")
-                confirm_age()
-                login()
+                confirm_age(driver, wait)
+                login(driver, wait)
                 first_run = False
                 time.sleep(4)
 
-            is_product_availible = check_if_availible()
+            is_product_availible = check_if_availible(driver, wait)
 
             if is_product_availible:
                 try:
-                    add_to_cart()
+                    add_to_cart(driver, wait)
                 except Exception as e:
                     logger.error("Failed to add to cart. Maybe the product isn't availible. Checking again.")
                     try:
-                        get_product(product)
-                        if (check_if_availible):
+                        get_product(product, driver, wait)
+                        if (check_if_availible(driver, wait)):
                             logger.info("Looks like product is still availible. Trying to add to cart again.")
-                            add_to_cart()
+                            add_to_cart(driver, wait)
                             logger.info("Successfully added to cart on retry")
                         else:
                             logger.info("Actually, the product is not availible.")
@@ -121,16 +121,16 @@ def start_bot():
                         continue
 
                 try:
-                    checkout()
+                    checkout(driver, wait)
                 except Exception as e:
                     logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
-                        get_product(product)
-                        checkout()
+                        get_product(product, driver, wait)
+                        checkout(driver, wait)
                     except:
                         logger.error("Failed checkout. Quitting", exc_info=True)
-                        close()
+                        close(driver, wait)
 
                 config = mark_as_purchased(config, index)
 
@@ -141,13 +141,14 @@ def start_bot():
         # Reset index if all products have been checked
         if index >= product_count:
             index = 0  # Restart from the first product
-            
+        
+        driver.quit()
+        logger.info(f"Quit driver and waiting {retry_interval/60} minutes")
         time.sleep(retry_interval)
 
-    driver.quit()
 
 
-def get_product(product):
+def get_product(product, driver, wait):
     product_url = product['url']
     name = product['name']
 
@@ -156,9 +157,9 @@ def get_product(product):
         driver.get(product_url)
     elif name is not None:
         logger.info(f"Searcing name {name}")
-        load_home_page()
-        confirm_age()
-        search_for_product(name)
+        load_home_page(driver, wait)
+        confirm_age(driver, wait)
+        search_for_product(name, driver, wait)
     else:
         logger.error("Product name or URL must be specified")
         driver.quit()
@@ -166,7 +167,7 @@ def get_product(product):
     time.sleep(4)
 
 
-def login():
+def login(driver, wait):
     time.sleep(3)
     try:
         # Wait for the button to be clickable
@@ -199,12 +200,12 @@ def login():
         close()
 
 
-def load_home_page():
+def load_home_page(driver, wait):
     driver.get("https://finewineandgoodspirits.com")
     logger.info("Loaded home page")
 
 
-def confirm_age():
+def confirm_age(driver, wait):
     try:
         button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Yes, Enter into the site']")))
         button.click()
@@ -213,7 +214,7 @@ def confirm_age():
         pass
 
 
-def search_for_product(name):
+def search_for_product(name, driver, wait):
     try:
         input_field = wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@aria-label='search']")))
         input_field.send_keys(name)
@@ -230,9 +231,9 @@ def search_for_product(name):
         raise
 
 
-def check_if_availible():
+def check_if_availible(driver, wait):
     time.sleep(8)
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
     try:
         # Wait for the button to be present in the DOM
         wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false' and text()='Coming Soon']")))
@@ -244,10 +245,10 @@ def check_if_availible():
         return True  # Button does not exist
 
 
-def add_to_cart():
+def add_to_cart(driver, wait):
     time.sleep(3)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
 
     try:
         logger.info("Adding to cart")
@@ -257,7 +258,7 @@ def add_to_cart():
         logger.error("Error while checking availability...")
 
     time.sleep(3)
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
 
     if PICKUP_METHOD == "IN_STORE":
         logger.info("Picking up in store.")
@@ -294,7 +295,7 @@ def add_to_cart():
 
     time.sleep(3)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
     try:
         add_to_cart_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false']")))
         add_to_cart_button.click()
@@ -306,12 +307,12 @@ def add_to_cart():
     time.sleep(3)
 
 
-def checkout():
+def checkout(driver, wait):
     logger.info("Checking out")
 
     time.sleep(3)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
 
     # try:
     #     cart_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
@@ -323,7 +324,7 @@ def checkout():
 
     # time.sleep(3)
 
-    # click_popup_close_button()
+    # click_popup_close_button(driver, wait)
         
     # try:
     #     checkout_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
@@ -342,7 +343,7 @@ def checkout():
 
     time.sleep(4)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
 
     # Phone number and use contact button seems like a one time setup
 
@@ -371,7 +372,7 @@ def checkout():
 
         time.sleep(3)
 
-        click_popup_close_button()
+        click_popup_close_button(driver, wait)
 
         try:
             # Wait for the button to be clickable
@@ -385,7 +386,7 @@ def checkout():
 
     time.sleep(6)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
     
     try:
         security_code_input = wait.until(EC.visibility_of_element_located((By.ID, "csv-code")))
@@ -398,7 +399,7 @@ def checkout():
 
     time.sleep(4)
 
-    click_popup_close_button()
+    click_popup_close_button(driver, wait)
 
     try:
         place_order_button = wait.until(EC.element_to_be_clickable((By.ID, "place-order-button")))
@@ -411,7 +412,7 @@ def checkout():
     time.sleep(5)
 
 
-def click_popup_close_button():
+def click_popup_close_button(driver, wait):
     try:
         # Wait for the close button to be clickable
         close_button = driver.find_element(By.CLASS_NAME, "ltkpopup-close")
@@ -422,11 +423,7 @@ def click_popup_close_button():
         pass
 
 
-def was_checkout_successful():
-    return True
-
-
-def close():
+def close(driver, wait):
     driver.quit()
 
 
