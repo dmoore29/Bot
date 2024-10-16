@@ -61,6 +61,7 @@ def start_bot():
     index = 0  # Initialize the index
 
     while product_count > 0:
+        first_run = True
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         wait = WebDriverWait(driver, 8)
         time.sleep(4)
@@ -89,10 +90,14 @@ def start_bot():
 
             logger.info("Checking product")
 
-            logger.info("First run")
-            confirm_age(driver, wait)
-            login(driver, wait)
-            time.sleep(4)
+            if first_run:
+                logger.info("First run")
+                click_popup_close_button(driver, wait)
+                confirm_age(driver, wait)
+                click_popup_close_button(driver, wait)
+                login(driver, wait)
+                first_run = False
+                time.sleep(4)
 
             is_product_availible = check_if_availible(driver, wait)
 
