@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -12,6 +13,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from bot_dao import fetch_configuration, insert_configuration
 import time
+from datetime import datetime
 
 
 ###
@@ -19,7 +21,6 @@ import time
 # TODO: Empty cart
 # TODO: Validate price
 # TODO: Fix searching
-# TODO: Add all configs to frontend
 # TODO: Add credit card security code to secrets manager
 
 
@@ -63,6 +64,8 @@ def start_bot():
     while product_count > 0:
         first_run = True
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        driver.set_window_size(1920, 1080)
+
         wait = WebDriverWait(driver, 8)
         time.sleep(4)
 
@@ -91,13 +94,18 @@ def start_bot():
             logger.info("Checking product")
 
             if first_run:
-                logger.info("First run")
-                click_popup_close_button(driver, wait)
-                confirm_age(driver, wait)
-                click_popup_close_button(driver, wait)
-                login(driver, wait)
-                first_run = False
-                time.sleep(4)
+                try:
+                    logger.info("First run")
+                    click_popup_close_button(driver, wait)
+                    confirm_age(driver, wait)
+                    click_popup_close_button(driver, wait)
+                    login(driver, wait)
+                    first_run = False
+                    time.sleep(4)
+                except:
+                    logger.error("Unable to initialize first run.", exc_info=True)
+                    break
+
 
             is_product_availible = check_if_availible(driver, wait)
 
@@ -120,7 +128,6 @@ def start_bot():
                         logger.error("Failed to add to cart. Marking product as error", exc_info=True)
                         config = mark_as_error(config, index)
                         index += 1
-                        continue
 
                 try:
                     checkout(driver, wait)
@@ -143,10 +150,13 @@ def start_bot():
         # Reset index if all products have been checked
         if index >= product_count:
             index = 0  # Restart from the first product
+
+        variability = random.uniform(-0.2, 0.2)  # Add or subtract up to 20% of retry_interval
+        adjusted_sleep = retry_interval * (1 + variability)
         
         driver.quit()
-        logger.info(f"Quit driver and waiting {retry_interval/60} minutes")
-        time.sleep(retry_interval)
+        logger.info(f"Quit driver and waiting {adjusted_sleep/60} minutes")
+        time.sleep(adjusted_sleep)
 
 
 
@@ -199,7 +209,10 @@ def login(driver, wait):
         logger.info("Logged in successfully")
     except:
         logger.error("Error while logging in...")
-        close()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"login_error_{timestamp}.png")
+
+        raise
 
 
 def load_home_page(driver, wait):
@@ -289,8 +302,9 @@ def add_to_cart(driver, wait):
             ship_button.click()
             logger.info("Clicked ship")
         except:
-            logger.info("Page source snapshot for debugging: \n" + driver.page_source)
-            driver.save_screenshot("screenshot_error.png")
+            # logger.info("Page source snapshot for debugging: \n" + driver.page_source)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            driver.save_screenshot(f"shipping_error_{timestamp}.png")
             logger.error("Error while clicking ship...")
     else:
         logger.error("Unsupported shipping method. Must be either IN_STORE or SHIP")
