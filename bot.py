@@ -17,11 +17,10 @@ from datetime import datetime
 
 
 ###
-# TODO: Improve logging
 # TODO: Empty cart
 # TODO: Validate price
 # TODO: Fix searching
-# TODO: Add credit card security code to secrets manager
+# TODO: Speed up
 
 
 ################################################################
@@ -70,6 +69,7 @@ def start_bot():
         time.sleep(4)
 
         config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
+        secret = get_secret()
         logger.info(f"Retrieved config: {config}")
         retry_interval = config['retryInterval']
         product_count = len(config['products'])
@@ -99,7 +99,7 @@ def start_bot():
                     click_popup_close_button(driver, wait)
                     confirm_age(driver, wait)
                     click_popup_close_button(driver, wait)
-                    login(driver, wait)
+                    login(driver, wait, secret)
                     first_run = False
                     time.sleep(4)
                 except:
@@ -130,13 +130,13 @@ def start_bot():
                         index += 1
 
                 try:
-                    checkout(driver, wait)
+                    checkout(driver, wait, secret)
                 except Exception as e:
                     logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
                         get_product(product, driver, wait)
-                        checkout(driver, wait)
+                        checkout(driver, wait, secret)
                     except:
                         logger.error("Failed checkout. Quitting", exc_info=True)
                         close(driver, wait)
@@ -179,7 +179,7 @@ def get_product(product, driver, wait):
     time.sleep(4)
 
 
-def login(driver, wait):
+def login(driver, wait, secret):
     time.sleep(3)
     try:
         # Wait for the button to be clickable
@@ -190,8 +190,6 @@ def login(driver, wait):
         logger.error("Log In button did not become clickable in time.")
 
     time.sleep(3)
-
-    secret = get_secret()
 
     email_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_email")))
     email_input.clear()  # Clear any existing text
@@ -323,33 +321,12 @@ def add_to_cart(driver, wait):
     time.sleep(3)
 
 
-def checkout(driver, wait):
+def checkout(driver, wait, secret):
     logger.info("Checking out")
 
-    time.sleep(3)
+    time.sleep(6)
 
     click_popup_close_button(driver, wait)
-
-    # try:
-    #     cart_button = wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@class='miniCart__openButton icon--before icon-cart tooltip-icon' and @aria-label='Cart']")))
-    #     cart_button.click()
-    #     logger.info("Clicked cart")
-    # except:
-    #     logger.error("Error while clicking cart...")
-    #     raise
-
-    # time.sleep(3)
-
-    # click_popup_close_button(driver, wait)
-        
-    # try:
-    #     checkout_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='button cart-link' and text()='CHECKOUT']")))
-    #     checkout_button.click()
-    #     logger.info("Proceeded to checkout")
-    # except Exception as e:
-    #     logger.error("Error while going to checkout...")
-    #     logger.error(e)
-    #     raise
 
     try:
         driver.get("https://www.finewineandgoodspirits.com/checkout")
@@ -360,21 +337,6 @@ def checkout(driver, wait):
     time.sleep(4)
 
     click_popup_close_button(driver, wait)
-
-    # Phone number and use contact button seems like a one time setup
-
-    # try:
-    #     phone_input = wait.until(EC.visibility_of_element_located((By.ID, "contact_info_profile-phoneNumber")))
-    #     phone_input.clear()  # Clear any existing text
-    #     phone_input.send_keys(7178141862)  # Enter the phone number
-    # except:
-    #     logger.error("Failed entering phone number...")
-          
-    # try:
-    #     contact_info_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and text()='USE CONTACT INFO']")))
-    #     contact_info_button.click()
-    # except TimeoutException:
-        # logger.error("Failed to click use contact button...")
 
     if SHIP_METHOD == "MY_STORE":
         try:
@@ -407,7 +369,7 @@ def checkout(driver, wait):
     try:
         security_code_input = wait.until(EC.visibility_of_element_located((By.ID, "csv-code")))
         security_code_input.clear()  # Clear any existing text
-        security_code_input.send_keys(7173)  # Enter the security code
+        security_code_input.send_keys(secret['cvv']) # Enter the security code
         logger.info("Entered security code")
     except:
         logger.error("Failed entering security code...")
@@ -430,9 +392,8 @@ def checkout(driver, wait):
 
 def click_popup_close_button(driver, wait):
     try:
-        # Wait for the close button to be clickable
         close_button = driver.find_element(By.CLASS_NAME, "ltkpopup-close")
-        close_button.click()  # Click the close button
+        close_button.click()
         logger.info("Popup close button clicked.")
         time.sleep(2)
     except:
