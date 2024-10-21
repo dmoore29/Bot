@@ -83,7 +83,23 @@
                 <label for="retryInterval">Retry Interval (seconds)</label>
                 <input type="number" class="form-control" id="retryInterval" value="${configuration.retryInterval || 10}" onchange="updateRetryInterval(this.value)">
             </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="cvv">CVV</label>
+                <input type="text" class="form-control" id="cvv" placeholder="Enter CVV">
+            </div>            
     
+            <div>
+                <label for="products">Product List</label>
+            </div>
             <div id="productList"></div>
             <button class="btn btn-success mt-3" id="addProductButton">Add New Product</button>
             <button class="btn btn-primary mt-3" id="saveButton">Save Configuration</button>
@@ -262,6 +278,34 @@
                     console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
                 } else {
                     console.log("Configuration saved:", JSON.stringify(configuration, null, 2));
+
+                    // Collect email, password, and CVV values
+                    const email = document.getElementById("email").value.trim();
+                    const password = document.getElementById("password").value.trim();
+                    const cvv = document.getElementById("cvv").value.trim();
+
+                    // Prepare the API body
+                    const apiBody = {};
+                    if (email) apiBody.email = email;
+                    if (password) apiBody.password = password;
+                    if (cvv) apiBody.cvv = cvv;
+
+                    // Make the API call
+                    fetch('https://ucm3wac6cf.execute-api.us-east-1.amazonaws.com/prod/update-secret/finewineandgoodspirits', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(apiBody)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("API Response:", data);
+                    })
+                    .catch(error => {
+                        console.error("Error calling API:", error);
+                    });
+
                     alert("Configuration saved successfully!");
                 }
             });
