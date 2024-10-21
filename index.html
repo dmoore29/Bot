@@ -125,21 +125,21 @@
 
         // API functions for Start, Stop, and Status
         function startBot() {
-            fetch('http://98.83.74.128:5000/start', { method: 'POST' })
+            fetch('https://cosc9ie41i.execute-api.us-east-1.amazonaws.com/start', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => alert(`Start Bot Response: ${JSON.stringify(data)}`))
                 .catch(error => console.error('Error:', error));
         }
 
         function stopBot() {
-            fetch('http://98.83.74.128:5000/stop', { method: 'POST' })
+            fetch('https://cosc9ie41i.execute-api.us-east-1.amazonaws.com/stop', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => alert(`Stop Bot Response: ${JSON.stringify(data)}`))
                 .catch(error => console.error('Error:', error));
         }
 
         function checkStatus() {
-            fetch('http://98.83.74.128:5000/status')
+            fetch('https://cosc9ie41i.execute-api.us-east-1.amazonaws.com/status')
                 .then(response => response.json())
                 .then(data => alert(`Bot Status: ${JSON.stringify(data)}`))
                 .catch(error => console.error('Error:', error));
@@ -157,7 +157,7 @@
                         <h5 class="card-title">Product ${index + 1}</h5>
                         <div class="form-group">
                             <label>Quantity</label>
-                            <input type="number" class="form-control" value="${product.quantity}" onchange="updateProduct(${index}, 'quantity', this.value)">
+                            <input type="number" class="form-control" value="${product.quantity}" min="1" max="2" onchange="updateProduct(${index}, 'quantity', this.value)">
                         </div>
                         <div class="form-group">
                             <label>Status</label>
