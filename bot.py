@@ -208,7 +208,7 @@ def login(driver, wait, secret):
     except:
         logger.error("Error while logging in...")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        driver.save_screenshot(f"login_error_{timestamp}.png")
+        driver.save_screenshot(f"screenshots/login_error_{timestamp}.png")
 
         raise
 
@@ -302,7 +302,7 @@ def add_to_cart(driver, wait):
         except:
             # logger.info("Page source snapshot for debugging: \n" + driver.page_source)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            driver.save_screenshot(f"shipping_error_{timestamp}.png")
+            driver.save_screenshot(f"screenshots/shipping_error_{timestamp}.png")
             logger.error("Error while clicking ship...")
     else:
         logger.error("Unsupported shipping method. Must be either IN_STORE or SHIP")
