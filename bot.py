@@ -16,29 +16,27 @@ import time
 from datetime import datetime
 
 
-###
-# TODO: Empty cart
-# TODO: Validate price
+################################################################
+#                           TO DO                              #
+################################################################
 # TODO: Fix searching
-# TODO: Speed up
+# TODO: Add max price to website configuration
+################################################################
 
 
 ################################################################
 #                       CONFIGURATION                          #
 ################################################################
-
-# PICKUP_METHOD = "IN_STORE" # In store typically means same day so is likely unavailible
-PICKUP_METHOD = "SHIP"
-# SHIP_METHOD = "MY_ADDRESS"
-SHIP_METHOD = "MY_STORE"
+PICKUP_METHOD = "SHIP" # "IN_STORE" or "SHIP"
+SHIP_METHOD = "MY_ADDRESS" # "MY_ADDRESS" or "MY_STORE"
 STORE_ZIP_CODE = 17363
-
+MAX_PRICE = 275
 ################################################################
 ################################################################
 
-# Configure logging
+
 logging.basicConfig(
-    filename='./logs/app.log',  # Path where logs will be stored for CloudWatch
+    filename='./logs/app.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -65,7 +63,7 @@ def start_bot():
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         driver.set_window_size(1920, 1080)
 
-        wait = WebDriverWait(driver, 8)
+        wait = WebDriverWait(driver, 10)
         time.sleep(4)
 
         config = fetch_configuration("PurchaseBot", "finewineandgoodspirits")
@@ -101,7 +99,6 @@ def start_bot():
                     click_popup_close_button(driver, wait)
                     login(driver, wait, secret)
                     first_run = False
-                    time.sleep(4)
                 except:
                     logger.error("Unable to initialize first run.", exc_info=True)
                     break
@@ -129,23 +126,27 @@ def start_bot():
                         config = mark_as_error(config, index)
                         index += 1
 
+                checkout_success = False
+
                 try:
-                    checkout(driver, wait, secret)
+                    checkout_success = checkout(driver, wait, secret)
                 except Exception as e:
                     logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
                         get_product(product, driver, wait)
-                        checkout(driver, wait, secret)
+                        checkout_success = checkout(driver, wait, secret)
                     except:
-                        logger.error("Failed checkout. Quitting", exc_info=True)
-                        close(driver, wait)
+                        logger.error("Failed checkout again.", exc_info=True)
 
-                config = mark_as_purchased(config, index)
+                if (checkout_success):
+                    config = mark_as_purchased(config, index)
+                else:
+                    config = mark_as_error(config, index)
 
             index += 1  # Move to the next product
             logger.info("Moving to next product")
-            time.sleep(4)
+            time.sleep(2)
 
         # Reset index if all products have been checked
         if index >= product_count:
@@ -176,11 +177,11 @@ def get_product(product, driver, wait):
         logger.error("Product name or URL must be specified")
         driver.quit()
 
-    time.sleep(4)
-
+    time.sleep(1)
 
 def login(driver, wait, secret):
-    time.sleep(3)
+    time.sleep(2)
+    click_popup_close_button(driver, wait)
     try:
         # Wait for the button to be clickable
         login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='modal-header-login link' and .//span[text()='Log In']]")))
@@ -189,7 +190,7 @@ def login(driver, wait, secret):
     except:
         logger.error("Log In button did not become clickable in time.")
 
-    time.sleep(3)
+    time.sleep(1)
 
     email_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_email")))
     email_input.clear()  # Clear any existing text
@@ -199,7 +200,7 @@ def login(driver, wait, secret):
     password_input.clear()  # Clear any existing text
     password_input.send_keys(secret['password'])
 
-    time.sleep(3)
+    time.sleep(1)
 
     try:
         final_login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and @aria-label='LOGIN']")))
@@ -223,6 +224,7 @@ def confirm_age(driver, wait):
         button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Yes, Enter into the site']")))
         button.click()
         logger.info("Age confirmed")
+        time.sleep(1)
     except:
         pass
 
@@ -234,18 +236,16 @@ def search_for_product(name, driver, wait):
         input_field.send_keys(Keys.RETURN)
         logger.info(f"Searched for product: {name}")
 
-        time.sleep(4)
+        time.sleep(2)
         input_field = wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, name)))
         link = driver.find_element(By.PARTIAL_LINK_TEXT, name)
         link.click()
-        time.sleep(4)
     except:
         logger.error(f"Failed to search for {name}")
         raise
 
 
 def check_if_availible(driver, wait):
-    time.sleep(8)
     click_popup_close_button(driver, wait)
     try:
         # Wait for the button to be present in the DOM
@@ -254,23 +254,21 @@ def check_if_availible(driver, wait):
         return False
     except:
         logger.info("Product appears to be in stock...")
-        logger.info("Page source snapshot for debugging: \n" + driver.page_source)
         return True  # Button does not exist
 
 
 def add_to_cart(driver, wait):
-    time.sleep(3)
-
     click_popup_close_button(driver, wait)
+    short_wait = WebDriverWait(driver, 3)
 
     try:
         logger.info("Adding to cart")
-        availability_button = wait.until(EC.element_to_be_clickable ((By.XPATH, "//button[@class='link' and text()='Click to see availability.']")))
+        availability_button = short_wait.until(EC.element_to_be_clickable ((By.XPATH, "//button[@class='link' and text()='Click to see availability.']")))
         availability_button.click()
     except:
-        logger.error("Error while checking availability...")
+        logger.warn("Error while checking availability...")
 
-    time.sleep(3)
+    time.sleep(1)
     click_popup_close_button(driver, wait)
 
     if PICKUP_METHOD == "IN_STORE":
@@ -279,21 +277,19 @@ def add_to_cart(driver, wait):
             ship_button = wait.until(EC.element_to_be_clickable ((By.XPATH, "//div[@role='dialog']//button[@class='button fulfillment ' and .//p[text()='Pick Up']]")))
             driver.execute_script("arguments[0].click();", ship_button)
         except:
-            logger.error("Error while clicking pick up...")
-
-        time.sleep(3)
+            logger.warn("Error while clicking pick up...")
 
         try:
             search_input = wait.until(EC.visibility_of_element_located((By.NAME, "fulltext")))
-            search_input.clear()  # Clear any existing text
-            search_input.send_keys(STORE_ZIP_CODE)  # Enter the search value
+            search_input.clear()
+            search_input.send_keys(STORE_ZIP_CODE)
         except:
             logger.error("Error while searching for store...")
 
     elif PICKUP_METHOD == "SHIP":
         logger.info("Shipping.")
         try:
-            ship_button = wait.until(EC.element_to_be_clickable((
+            ship_button = short_wait.until(EC.element_to_be_clickable((
                 By.XPATH, 
                 "//div[h4[@id='fulfillmentMethod' and text()='How would you like to shop?']]//button[@class='button fulfillment ' and .//p[@class='fulfillment' and text()='Ship'] and .//p[@class='small' and text()='To Me or My Store']]"
             )))            
@@ -303,12 +299,11 @@ def add_to_cart(driver, wait):
             # logger.info("Page source snapshot for debugging: \n" + driver.page_source)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             driver.save_screenshot(f"screenshots/shipping_error_{timestamp}.png")
-            logger.error("Error while clicking ship...")
+            logger.warn("Error while clicking ship...")
     else:
         logger.error("Unsupported shipping method. Must be either IN_STORE or SHIP")
 
-    time.sleep(3)
-
+    time.sleep(1)
     click_popup_close_button(driver, wait)
     try:
         add_to_cart_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='pdp__info-quantity-availability']//button[@class='add-to-cart-button button full-width false']")))
@@ -318,13 +313,20 @@ def add_to_cart(driver, wait):
         logger.error("Error while adding to cart...")
         raise()
     
-    time.sleep(3)
+    time.sleep(1)    
+    
+    try:
+        # Wait until the loading icon is no longer visible or removed
+        wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "span.icon--after.icon-loading")))
+        logger.info("Loading icon has disappeared.")
+    except:
+        logger.info("Timeout: Loading icon is still present.")
 
+    time.sleep(1)    
 
 def checkout(driver, wait, secret):
     logger.info("Checking out")
-
-    time.sleep(6)
+    short_wait = WebDriverWait(driver, 2)
 
     click_popup_close_button(driver, wait)
 
@@ -334,8 +336,7 @@ def checkout(driver, wait, secret):
     except:
         logger.error("Failed to navigate to checkout page")
 
-    time.sleep(4)
-
+    time.sleep(1)
     click_popup_close_button(driver, wait)
 
     if SHIP_METHOD == "MY_STORE":
@@ -344,27 +345,38 @@ def checkout(driver, wait, secret):
             my_store_button = wait.until(EC.element_to_be_clickable((By.ID, "shipToMyStore")))
             my_store_button.click()  # Click the radio button to select it
             logger.info("Ship to My Store radio button selected.")
+            time.sleep(1)
         except:
-            logger.error("Ship to My Store radio button did not become clickable in time.")
+            logger.warn("Ship to My Store radio button did not become clickable in time.")
             raise
-
-        time.sleep(3)
 
         click_popup_close_button(driver, wait)
-
+    elif SHIP_METHOD == "MY_ADDRESS":
         try:
-            # Wait for the button to be clickable
-            continue_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Continue to Payment']")))
-            continue_button.click()  # Click the button
-            logger.info("Continue to Payment button clicked.")
+            # Wait for the radio button to be present and clickable
+            my_address_button = short_wait.until(EC.element_to_be_clickable((By.ID, "shipToMyAddress")))
+            my_address_button.click()  # Click the radio button to select it
+            logger.info("Ship to My Address radio button selected.")
         except:
-            logger.error("Continue to Payment button did not become clickable in time.")
-            raise
+            logger.warn("Ship to My Address radio button did not become clickable in time.")
+    else:
+        logger.error(f"Unsupported ship method: {SHIP_METHOD}")
+        raise NotImplementedError
 
+    try:
+        # Wait for the button to be clickable
+        continue_button = short_wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Continue to Payment']")))
+        continue_button.click()  # Click the button
+        logger.info("Continue to Payment button clicked.")
+    except:
+        logger.warn("Continue to Payment button did not become clickable in time.")
 
-    time.sleep(6)
-
+    time.sleep(1)
     click_popup_close_button(driver, wait)
+
+    if not is_valid_price(driver, wait):
+        empty_cart(driver, wait)
+        return False
     
     try:
         security_code_input = wait.until(EC.visibility_of_element_located((By.ID, "csv-code")))
@@ -375,8 +387,7 @@ def checkout(driver, wait, secret):
         logger.error("Failed entering security code...")
         raise
 
-    time.sleep(4)
-
+    time.sleep(1)
     click_popup_close_button(driver, wait)
 
     try:
@@ -388,6 +399,63 @@ def checkout(driver, wait, secret):
         raise
 
     time.sleep(5)
+    return True
+
+
+def is_valid_price(driver, wait):
+    price_value = 9999
+    try:
+        price_element = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "h4.order-summary-value.orderSummary-price")))
+        price_value = float(price_element.text)
+        logger.info(f"Found price of {price_value}")
+    except:
+        logger.error("Cannot get price")
+        raise
+
+    if price_value > MAX_PRICE:
+        logger.info(f"Price, {price_value}, is above max price of {MAX_PRICE}")
+        return False
+    else:
+        logger.info(f"Price, {price_value}, is below max price of {MAX_PRICE}")
+        return True
+    
+
+def empty_cart(driver, wait):
+    logger.info("Emptying cart")
+    load_home_page(driver, wait)
+
+    time.sleep(1)
+    click_popup_close_button(driver, wait)
+
+    try:
+        # Wait until the cart button is clickable
+        cart_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.miniCart__openButton.icon--before.icon-cart")))
+        cart_button.click()
+        logger.info("Clicked the cart button.")
+    except:
+        logger.error("Cart button not found or not clickable within the wait time.")
+        return
+
+    while True:
+        try:
+            delete_buttons = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "span.icon--before.icon-delete")))
+
+            if not delete_buttons:
+                logger.info("No delete buttons found.")
+                break  # No delete buttons, break the loop
+
+            # Click each delete button
+            for button in delete_buttons:
+                button.click()
+                time.sleep(1)  # Add a short pause between clicks
+
+            logger.info(f"Clicked {len(delete_buttons)} delete buttons.")
+
+        except:
+            logger.info("No more delete buttons within the wait time.")
+            break  # Exit loop if no delete buttons found within 10 seconds
+
+    logger.info("Cart has been emptied.")
 
 
 def click_popup_close_button(driver, wait):
@@ -428,6 +496,7 @@ def get_secret():
     return json.loads(get_secret_value_response['SecretString'])
 
 def mark_as_purchased(config, index):
+    logger.info("Marking as purchased")
     config['products'][index]['status'] = 'purchased'
     logger.info(f"Inserting config: {config}")
     insert_configuration("PurchaseBot", config)
@@ -435,6 +504,7 @@ def mark_as_purchased(config, index):
 
 
 def mark_as_error(config, index):
+    logger.info("Marking as error")
     config['products'][index]['status'] = 'error'
     logger.info(f"Inserting config: {config}")
     insert_configuration("PurchaseBot", config)
