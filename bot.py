@@ -109,7 +109,7 @@ def start_bot():
             if is_product_availible:
                 try:
                     add_to_cart(driver, wait)
-                except Exception as e:
+                except:
                     logger.error("Failed to add to cart. Maybe the product isn't availible. Checking again.")
                     try:
                         get_product(product, driver, wait)
@@ -125,12 +125,13 @@ def start_bot():
                         logger.error("Failed to add to cart. Marking product as error", exc_info=True)
                         config = mark_as_error(config, index)
                         index += 1
+                        continue
 
                 checkout_success = False
 
                 try:
                     checkout_success = checkout(driver, wait, secret)
-                except Exception as e:
+                except:
                     logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
@@ -168,6 +169,7 @@ def get_product(product, driver, wait):
     if product_url is not None:
         logger.info(f"Loading URL {product_url}")
         driver.get(product_url)
+        logger.info(f"Got product")
     elif name is not None:
         logger.info(f"Searcing name {name}")
         load_home_page(driver, wait)

@@ -1,3 +1,6 @@
+*.exe
+*.zip
+
 # Ignore all .log files
 *.log
 
