@@ -54,6 +54,7 @@ chrome_options.add_argument("--incognito")
 session = boto3.session.Session()
 
 def start_bot():
+    logger.info("Version 24.11.11.21.26")
     is_product_availible = False
     product_count = 1
     index = 0  # Initialize the index
@@ -335,6 +336,9 @@ def checkout(driver, wait, secret):
 
     click_popup_close_button(driver, wait)
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_pre_checkout_{timestamp}.png")
+
     try:
         driver.get("https://www.finewineandgoodspirits.com/checkout")
         logger.info("Navigated to checkout")
@@ -343,6 +347,10 @@ def checkout(driver, wait, secret):
 
     time.sleep(1)
     click_popup_close_button(driver, wait)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_in_checkout_page_{timestamp}.png")
+
 
     if SHIP_METHOD == "MY_STORE":
         try:
@@ -357,6 +365,8 @@ def checkout(driver, wait, secret):
 
         click_popup_close_button(driver, wait)
     elif SHIP_METHOD == "MY_ADDRESS":
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/checkout_issue_ship_to_my_address_{timestamp}.png")
         try:
             # Wait for the radio button to be present and clickable
             my_address_button = short_wait.until(EC.element_to_be_clickable((By.ID, "shipToMyAddress")))
@@ -367,6 +377,9 @@ def checkout(driver, wait, secret):
     else:
         logger.error(f"Unsupported ship method: {SHIP_METHOD}")
         raise NotImplementedError
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_continue_to_payment_{timestamp}.png")
 
     try:
         # Wait for the button to be clickable
@@ -379,11 +392,16 @@ def checkout(driver, wait, secret):
     time.sleep(1)
     click_popup_close_button(driver, wait)
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_check_price_{timestamp}.png")
+
     if not is_valid_price(driver, wait):
         empty_cart(driver, wait)
         return False
     
     click_popup_close_button(driver, wait)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_enter_security_code_{timestamp}.png")
     try:
         security_code_input = wait.until(EC.visibility_of_element_located((By.ID, "csv-code")))
         security_code_input.clear()  # Clear any existing text
@@ -397,6 +415,9 @@ def checkout(driver, wait, secret):
 
     time.sleep(1)
     click_popup_close_button(driver, wait)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    driver.save_screenshot(f"screenshots/checkout_issue_placing_order_{timestamp}.png")
 
     try:
         place_order_button = wait.until(EC.element_to_be_clickable((By.ID, "place-order-button")))
