@@ -345,7 +345,7 @@ def checkout(driver, wait, secret):
     except:
         logger.error("Failed to navigate to checkout page")
 
-    time.sleep(1)
+    time.sleep(10)
     click_popup_close_button(driver, wait)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
