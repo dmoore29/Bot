@@ -187,7 +187,7 @@ def login(driver, wait, secret):
     click_popup_close_button(driver, wait)
     try:
         # Wait for the button to be clickable
-        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@class='modal-header-login link' and .//span[text()='Log In']]")))
+        login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Log In') or .//span[contains(text(), 'Log In')]]")))
         login_button.click()  # Click the button
         logger.info("Clicked login button")
     except:
@@ -195,11 +195,11 @@ def login(driver, wait, secret):
 
     time.sleep(1)
 
-    email_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_email")))
+    email_input = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='LoginForm']//form[@aria-label='Login Form']//input[@type='email' and contains(@id, 'login_form_email') and @name='email']")))
     email_input.clear()  # Clear any existing text
     email_input.send_keys(secret['email'])
 
-    password_input = wait.until(EC.visibility_of_element_located((By.ID, "authentication_header_login_form_password")))
+    password_input = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='LoginForm']//form[@aria-label='Login Form']//input[@type='password' and contains(@id, 'login_form_password')]")))
     password_input.clear()  # Clear any existing text
     password_input.send_keys(secret['password'])
 
@@ -346,6 +346,16 @@ def checkout(driver, wait, secret):
         logger.error("Failed to navigate to checkout page")
 
     time.sleep(10)
+    click_popup_close_button(driver, wait)
+
+    try:
+        wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Log Out') or .//span[contains(text(), 'Log Out')]]")))
+    except:
+        logger.warn("Log Out button not found. Logging in.")
+        login(driver, wait, secret)
+        logger.info("Logged in.")
+        time.sleep(10)
+
     click_popup_close_button(driver, wait)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
