@@ -46,7 +46,7 @@ logger = logging.getLogger()
 service = Service(executable_path="chromedriver.exe")
 
 chrome_options = Options()
-# chrome_options.add_argument("--headless")  # Run headless
+chrome_options.add_argument("--headless")  # Run headless
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--incognito")
@@ -54,7 +54,7 @@ chrome_options.add_argument("--incognito")
 session = boto3.session.Session()
 
 def start_bot():
-    logger.info("Version 24.11.11.21.26")
+    logger.info("Version 24.11.12.07.31")
     is_product_availible = False
     product_count = 1
     index = 0  # Initialize the index
