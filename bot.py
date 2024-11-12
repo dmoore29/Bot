@@ -212,7 +212,6 @@ def login(driver, wait, secret):
         logger.error("Error while logging in...")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         driver.save_screenshot(f"screenshots/login_error_{timestamp}.png")
-
         raise
 
 
@@ -244,6 +243,8 @@ def search_for_product(name, driver, wait):
         link.click()
     except:
         logger.error(f"Failed to search for {name}")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/search_error_{timestamp}.png")
         raise
 
 
@@ -313,6 +314,8 @@ def add_to_cart(driver, wait):
         logger.info("Added to cart.")
     except:
         logger.error("Error while adding to cart...")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/add_to_cart_error_{timestamp}.png")
         raise()
     
     time.sleep(1)    
@@ -380,12 +383,15 @@ def checkout(driver, wait, secret):
         empty_cart(driver, wait)
         return False
     
+    click_popup_close_button(driver, wait)
     try:
         security_code_input = wait.until(EC.visibility_of_element_located((By.ID, "csv-code")))
         security_code_input.clear()  # Clear any existing text
         security_code_input.send_keys(secret['cvv']) # Enter the security code
         logger.info("Entered security code")
     except:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/security_code_error_{timestamp}.png")
         logger.error("Failed entering security code...")
         raise
 
@@ -397,6 +403,8 @@ def checkout(driver, wait, secret):
         # place_order_button.click()
         logger.info("Placed order")
     except:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/place_order_error_{timestamp}.png")
         logger.error("Failed to place order")
         raise
 
@@ -412,6 +420,8 @@ def is_valid_price(driver, wait):
         logger.info(f"Found price of {price_value}")
     except:
         logger.error("Cannot get price")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        driver.save_screenshot(f"screenshots/get_price_error_{timestamp}.png")
         raise
 
     if price_value > MAX_PRICE:
