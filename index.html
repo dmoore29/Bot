@@ -16,9 +16,12 @@
                 color: #232f3e;
                 font-weight: 700;
                 margin-bottom: 30px;
+                text-align: center;
             }
             .btn {
                 font-weight: 500;
+                border-radius: 5px;
+                padding: 10px 20px;
             }
             .btn-success {
                 background-color: #1d8102;
@@ -66,11 +69,29 @@
             .text-center {
                 margin-bottom: 30px;
             }
+            #countdownDisplay {
+                font-size: 1.2em;
+                font-weight: 500;
+                color: #555;
+                padding: 10px;
+                margin: 20px 0;
+                background-color: #f9f9f9;
+                border-radius: 8px;
+                text-align: center;
+                border: 1px solid #ddd;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+                max-width: 250px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .form-group label {
+                margin-top: 15px;
+            }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1 class="text-center">David's Purchasing Bot Configuration</h1>
+            <h1>David's Purchasing Bot Configuration</h1>
     
             <!-- Controls for Start, Stop, and Status -->
             <div class="text-center mb-4">
@@ -78,10 +99,18 @@
                 <button class="btn btn-danger mx-2" id="stopButton">Stop</button>
                 <button class="btn btn-info mx-2" id="statusButton">Check Status</button>
             </div>
-            
+
+            <!-- Countdown Display -->
+            <div id="countdownDisplay">Next Run in: 00:00:00</div>
+
             <div class="form-group">
                 <label for="retryInterval">Retry Interval (seconds)</label>
                 <input type="number" class="form-control" id="retryInterval" value="${configuration.retryInterval || 10}" onchange="updateRetryInterval(this.value)">
+            </div>    
+
+            <div class="form-group">
+                <label for="maxPrice">Max Price (dollars)</label>
+                <input type="number" class="form-control" id="maxPrice" value="${configuration.maxPrice || 10}" onchange="updateMaxPrice(this.value)">
             </div>
 
             <div class="form-group">
@@ -100,7 +129,7 @@
             <div>
                 <label for="products">Product List</label>
             </div>
-            <div id="productList"></div>
+            <div id="productList" class="mb-3"></div>
             <button class="btn btn-success mt-3" id="addProductButton">Add New Product</button>
             <button class="btn btn-primary mt-3" id="saveButton">Save Configuration</button>
         </div>
@@ -131,13 +160,53 @@
                     if (data.Item) {
                         configuration = AWS.DynamoDB.Converter.unmarshall(data.Item);
                         renderProducts();
+                        displayCountdown();
                         document.getElementById("retryInterval").value = configuration.retryInterval; // Set initial retry interval
+                        document.getElementById("maxPrice").value = configuration.maxPrice; // Set initial max price
                     } else {
                         console.error("Item not found in DynamoDB.");
                     }
                 }
             });
         }
+
+        function displayCountdown() {
+            if (!configuration || !configuration.nextCheckTime) return;
+
+            const nextCheckTime = new Date(configuration.nextCheckTime).getTime();
+            const currentTime = new Date(getCurrentUTCDate());
+            let timeRemaining = Math.max(0, nextCheckTime - currentTime);
+
+            const countdownDisplay = document.getElementById("countdownDisplay");
+
+            // Update every second
+            const intervalId = setInterval(() => {
+                timeRemaining -= 1000;
+
+                if (timeRemaining <= 0) {
+                    countdownDisplay.textContent = "Checking again soon...";
+                    clearInterval(intervalId);
+                } else {
+                    const minutes = Math.floor(timeRemaining / (1000 * 60));
+                    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+                    countdownDisplay.textContent = `Next check in: ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        function getCurrentUTCDate() {
+            const now = new Date();
+
+            const year = now.getUTCFullYear();
+            const month = String(now.getUTCMonth() + 1).padStart(2, '0'); // months are 0-indexed
+            const day = String(now.getUTCDate()).padStart(2, '0');
+            const hours = String(now.getUTCHours()).padStart(2, '0');
+            const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
 
         // API functions for Start, Stop, and Status
         function startBot() {
@@ -232,6 +301,10 @@
 
         function updateRetryInterval(value) {
             configuration.retryInterval = parseInt(value, 10);
+        }
+
+        function updateMaxPrice(value) {
+            configuration.maxPrice = parseInt(value, 10);
         }
 
         // Function to update input type and reset the other field

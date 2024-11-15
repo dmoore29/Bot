@@ -13,14 +13,14 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from bot_dao import fetch_configuration, insert_configuration
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 
 ################################################################
 #                           TO DO                              #
 ################################################################
 # TODO: Fix searching
-# TODO: Add max price to website configuration
+# TODO: Add countdown
 ################################################################
 
 
@@ -30,7 +30,6 @@ from datetime import datetime
 PICKUP_METHOD = "SHIP" # "IN_STORE" or "SHIP"
 SHIP_METHOD = "MY_ADDRESS" # "MY_ADDRESS" or "MY_STORE"
 STORE_ZIP_CODE = 17363
-MAX_PRICE = 275
 ################################################################
 ################################################################
 
@@ -71,6 +70,7 @@ def start_bot():
         secret = get_secret()
         logger.info(f"Retrieved config: {config}")
         retry_interval = config['retryInterval']
+        max_price = config['maxPrice']
         product_count = len(config['products'])
 
 
@@ -131,13 +131,13 @@ def start_bot():
                 checkout_success = False
 
                 try:
-                    checkout_success = checkout(driver, wait, secret)
+                    checkout_success = checkout(driver, wait, secret, max_price)
                 except:
                     logger.error("Failed checkout. Trying again", exc_info=True)
                     try:
                         time.sleep(4)
                         get_product(product, driver, wait)
-                        checkout_success = checkout(driver, wait, secret)
+                        checkout_success = checkout(driver, wait, secret, max_price)
                     except:
                         logger.error("Failed checkout again.", exc_info=True)
 
@@ -156,6 +156,13 @@ def start_bot():
 
         variability = random.uniform(-0.2, 0.2)  # Add or subtract up to 20% of retry_interval
         adjusted_sleep = retry_interval * (1 + variability)
+
+        next_check_time = datetime.now(tz=timezone.utc) + timedelta(seconds=adjusted_sleep)
+
+        logger.info(f"Next run at: {next_check_time.strftime('%Y-%m-%d %H:%M:%S')} "
+                    f"(waiting {adjusted_sleep / 60:.2f} minutes)")
+
+        config = set_next_check_time(config, next_check_time.strftime('%Y-%m-%d %H:%M:%S'))
         
         driver.quit()
         logger.info(f"Quit driver and waiting {adjusted_sleep/60} minutes")
@@ -330,7 +337,7 @@ def add_to_cart(driver, wait):
 
     time.sleep(1)    
 
-def checkout(driver, wait, secret):
+def checkout(driver, wait, secret, max_price):
     logger.info("Checking out")
     short_wait = WebDriverWait(driver, 2)
 
@@ -405,7 +412,7 @@ def checkout(driver, wait, secret):
     # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # driver.save_screenshot(f"screenshots/checkout_issue_check_price_{timestamp}.png")
 
-    if not is_valid_price(driver, wait):
+    if not is_valid_price(driver, wait, max_price):
         empty_cart(driver, wait)
         return False
     
@@ -443,7 +450,7 @@ def checkout(driver, wait, secret):
     return True
 
 
-def is_valid_price(driver, wait):
+def is_valid_price(driver, wait, max_price):
     price_value = 9999
     try:
         price_element = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "h4.order-summary-value.orderSummary-price")))
@@ -455,11 +462,11 @@ def is_valid_price(driver, wait):
         driver.save_screenshot(f"screenshots/get_price_error_{timestamp}.png")
         raise
 
-    if price_value > MAX_PRICE:
-        logger.info(f"Price, {price_value}, is above max price of {MAX_PRICE}")
+    if price_value > max_price:
+        logger.info(f"Price, {price_value}, is above max price of {max_price}")
         return False
     else:
-        logger.info(f"Price, {price_value}, is below max price of {MAX_PRICE}")
+        logger.info(f"Price, {price_value}, is below max price of {max_price}")
         return True
     
 
@@ -537,6 +544,14 @@ def get_secret():
         raise e
 
     return json.loads(get_secret_value_response['SecretString'])
+
+def set_next_check_time(config, time):
+    logger.info(f"Setting next check time to {time}")
+    config['nextCheckTime'] = time
+    logger.info(f"Inserting config: {config}")
+    insert_configuration("PurchaseBot", config)
+    return config
+
 
 def mark_as_purchased(config, index):
     logger.info("Marking as purchased")

@@ -49,5 +49,7 @@ def parse_config(item):
             }
             for product in item['products']
         ],
+        "retryInterval": int(item['retryInterval']),
+        "maxPrice": int(item['maxPrice']),
         "retryInterval": int(item['retryInterval'])
     }
