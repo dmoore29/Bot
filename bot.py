@@ -20,7 +20,6 @@ from datetime import datetime, timedelta, timezone
 #                           TO DO                              #
 ################################################################
 # TODO: Fix searching
-# TODO: Add countdown
 ################################################################
 
 
@@ -438,7 +437,7 @@ def checkout(driver, wait, secret, max_price):
 
     try:
         place_order_button = wait.until(EC.element_to_be_clickable((By.ID, "place-order-button")))
-        # place_order_button.click()
+        place_order_button.click()
         logger.info("Placed order")
     except:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
