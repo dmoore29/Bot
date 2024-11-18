@@ -84,6 +84,8 @@ def start_bot():
             try:
                 get_product(product, driver, wait)
             except:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                driver.save_screenshot(f"screenshots/get_product_error_{timestamp}.png")
                 logger.error("Failed to get product")
                 config = mark_as_error(config, index)
                 index += 1
